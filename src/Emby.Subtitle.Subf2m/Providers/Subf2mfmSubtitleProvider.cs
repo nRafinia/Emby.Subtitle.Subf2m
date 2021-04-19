@@ -38,7 +38,6 @@ namespace Emby.Subtitle.Subf2m.Providers
 
         public int Order => 0;
 
-
         private readonly IHttpClient _httpClient;
         private readonly ILogger _logger;
         private readonly IApplicationHost _appHost;
@@ -57,12 +56,12 @@ namespace Emby.Subtitle.Subf2m.Providers
 
         private HttpRequestOptions BaseRequestOptions => new HttpRequestOptions
         {
-            UserAgent = $"Emby/{_appHost.ApplicationVersion}"
+            UserAgent = $"Emby/{_appHost?.ApplicationVersion}"
         };
 
         public async Task<SubtitleResponse> GetSubtitles(string id, CancellationToken cancellationToken)
         {
-            var ids = id.Split(new[] {"___"}, StringSplitOptions.RemoveEmptyEntries);
+            var ids = id.Split(new[] { "___" }, StringSplitOptions.RemoveEmptyEntries);
             var url = ids[0].Replace("__", "/");
             var lang = ids[1];
 
@@ -90,33 +89,31 @@ namespace Emby.Subtitle.Subf2m.Providers
             var fileExt = string.Empty;
             try
             {
-                using (var response = await _httpClient.GetResponse(opts).ConfigureAwait(false))
+                using var response = await _httpClient.GetResponse(opts).ConfigureAwait(false);
+                _logger?.Info("Subf2m=" + response.ContentType);
+                var contentType = response.ContentType.ToLower();
+                if (!contentType.Contains("zip"))
                 {
-                    _logger?.Info("Subf2m=" + response.ContentType);
-                    var contentType = response.ContentType.ToLower();
-                    if (!contentType.Contains("zip"))
+                    return new SubtitleResponse()
                     {
-                        return new SubtitleResponse()
-                        {
-                            Stream = ms
-                        };
-                    }
+                        Stream = ms
+                    };
+                }
 
-                    var archive = new ZipArchive(response.Content);
+                var archive = new ZipArchive(response.Content);
 
-                    var item = (archive.Entries.Count > 1
-                        ? archive.Entries.FirstOrDefault(a => a.FullName.ToLower().Contains("utf"))
-                        : archive.Entries.First()) ?? archive.Entries.First();
+                var item = (archive.Entries.Count > 1
+                    ? archive.Entries.FirstOrDefault(a => a.FullName.ToLower().Contains("utf"))
+                    : archive.Entries.First()) ?? archive.Entries.First();
 
-                    await item.Open().CopyToAsync(ms).ConfigureAwait(false);
-                    ms.Position = 0;
+                await item.Open().CopyToAsync(ms).ConfigureAwait(false);
+                ms.Position = 0;
 
-                    fileExt = item.FullName.Split('.').LastOrDefault();
+                fileExt = item.FullName.Split('.').LastOrDefault();
 
-                    if (string.IsNullOrWhiteSpace(fileExt))
-                    {
-                        fileExt = "srt";
-                    }
+                if (string.IsNullOrWhiteSpace(fileExt))
+                {
+                    fileExt = "srt";
                 }
             }
             catch (Exception e)
@@ -149,7 +146,7 @@ namespace Emby.Subtitle.Subf2m.Providers
                 ? request.Name
                 : request.SeriesName;
 
-            var res= await Search(title, request.ProductionYear, request.Language, request.ContentType, prov.Value.Value,
+            var res = await Search(title, request.ProductionYear, request.Language, request.ContentType, prov.Value.Value,
                 request.ParentIndexNumber ?? 0, request.IndexNumber ?? 0);
 
             _logger?.Debug($"Subf2m= result found={res?.Count()}");
@@ -179,7 +176,7 @@ namespace Emby.Subtitle.Subf2m.Providers
 
             res.RemoveAll(l => string.IsNullOrWhiteSpace(l.Name));
 
-            res = res.GroupBy(s => s.Id)
+            /*res = res.GroupBy(s => s.Id)
                 .Select(s => new RemoteSubtitleInfo()
                 {
                     Id = s.First().Id,
@@ -188,7 +185,7 @@ namespace Emby.Subtitle.Subf2m.Providers
                     ProviderName = "Subf2m",
                     Comment = string.Join("<br/>", s.Select(n => n.Name)),
                     Format = "srt"
-                }).ToList();
+                }).ToList();*/
             return res.OrderBy(s => s.Name);
         }
 
@@ -219,6 +216,8 @@ namespace Emby.Subtitle.Subf2m.Providers
             {
                 return res;
             }
+
+            html = html.Replace("</div></div></body>", "</div></body>");
 
             var xml = new XmlDocument();
             xml.LoadXml($"{XmlTag}{html}");
@@ -255,10 +254,12 @@ namespace Emby.Subtitle.Subf2m.Providers
 
             #region Extract subtitle links
 
+            html = html.Replace("</div></div></body>", "</div></body>");
+            
             xml = new XmlDocument();
             xml.LoadXml($"{XmlTag}{html}");
 
-            var repeater = xml.SelectNodes("//table/tbody/tr");
+            var repeater = xml.SelectNodes("//li[@class='item']");
 
             if (repeater == null)
             {
@@ -267,21 +268,29 @@ namespace Emby.Subtitle.Subf2m.Providers
 
             foreach (XmlElement node in repeater)
             {
-                var name = RemoveExtraCharacter(node.SelectSingleNode(".//a")?.SelectNodes("span").Item(1)
-                    ?.InnerText);
+                var nameList = node.SelectNodes(".//li");
+                var name = string.Empty;
+                foreach (XmlElement nItem in nameList)
+                {
+                    name += nItem.InnerText + "<br/>";
+                }
+
+                /*var name = RemoveExtraCharacter(node.SelectSingleNode(".//a")?.SelectNodes("span").Item(1)
+                    ?.InnerText);*/
 
                 if (string.IsNullOrWhiteSpace(name))
                     continue;
 
-                var id = (node.SelectSingleNode(".//a")?.Attributes["href"].Value + "___" + lang)
+                var id = (node.SelectSingleNode(".//a[@class='download icon-download']")?.Attributes["href"].Value + "___" + lang)
                     .Replace("/", "__");
                 var item = new RemoteSubtitleInfo
                 {
                     Id = id,
-                    Name = RemoveExtraCharacter(node.SelectSingleNode(".//a")?.SelectNodes("span").Item(1)
-                        ?.InnerText),
-                    Author = RemoveExtraCharacter(node.SelectSingleNode("td[@class='a6']")?.InnerText),
-                    ProviderName = RemoveExtraCharacter(node.SelectSingleNode("td[@class='a5']")?.InnerText),
+                    Name = name,
+                    //Author = RemoveExtraCharacter(node.SelectSingleNode("td[@class='a6']")?.InnerText),
+                    Author = RemoveExtraCharacter(node.SelectSingleNode(".//p")?.InnerText),
+                    //ProviderName = RemoveExtraCharacter(node.SelectSingleNode("td[@class='a5']")?.InnerText),
+                    ProviderName = RemoveExtraCharacter(node.SelectSingleNode(".//div[@class='vertical-middle']/b/a")?.InnerText),
                     ThreeLetterISOLanguageName = NormalizeLanguage(lang),
                     IsHashMatch = true
                 };
@@ -318,6 +327,8 @@ namespace Emby.Subtitle.Subf2m.Providers
             if (string.IsNullOrWhiteSpace(html))
                 return res;
 
+            html = html.Replace("</div></div></body>", "</div></body>");
+
             var xml = new XmlDocument();
             xml.LoadXml($"{XmlTag}{html}");
 
@@ -326,7 +337,8 @@ namespace Emby.Subtitle.Subf2m.Providers
                 return res;
 
             var ex = xNode?.SelectSingleNode("h2[@class='exact']")
-                     ?? xNode?.SelectSingleNode("h2[@class='close']");
+                     ?? xNode?.SelectSingleNode("h2[@class='close']")
+                     ?? xNode?.SelectSingleNode("h2[@class='popular']");
             if (ex == null)
                 return res;
 
@@ -350,33 +362,44 @@ namespace Emby.Subtitle.Subf2m.Providers
 
             #region Extract subtitle links
 
+            html = html.Replace("</div></div></body>", "</div></body>");
+
             xml = new XmlDocument();
             xml.LoadXml($"{XmlTag}{html}");
 
-            var repeater = xml.SelectNodes("//table/tbody/tr");
+            var repeater = xml.SelectNodes("//li[@class='item']");
 
             if (repeater == null)
             {
                 return res;
             }
 
+            var eTitle = $"S{season.ToString().PadLeft(2, '0')}E{episode.ToString().PadLeft(2, '0')}";
             foreach (XmlElement node in repeater)
             {
-                var name = RemoveExtraCharacter(node.SelectSingleNode(".//a")?.SelectNodes("span").Item(1)
-                    ?.InnerText);
+                var nameList = node.SelectNodes(".//li");
+                var name = string.Empty;
+                foreach (XmlElement nItem in nameList)
+                {
+                    name += nItem.InnerText + "<br/>";
+                }
 
-                if (string.IsNullOrWhiteSpace(name))
+                /*var name = RemoveExtraCharacter(node.SelectSingleNode(".//a")?.SelectNodes("span").Item(1)
+                    ?.InnerText);*/
+
+                if (string.IsNullOrWhiteSpace(name) || !name.Contains(eTitle))
                     continue;
 
-                var id = (node.SelectSingleNode(".//a")?.Attributes["href"].Value + "___" + lang)
+                var id = (node.SelectSingleNode(".//a[@class='download icon-download']")?.Attributes["href"].Value + "___" + lang)
                     .Replace("/", "__");
                 var item = new RemoteSubtitleInfo
                 {
                     Id = id,
-                    Name = RemoveExtraCharacter(node.SelectSingleNode(".//a")?.SelectNodes("span").Item(1)
-                        ?.InnerText),
-                    Author = RemoveExtraCharacter(node.SelectSingleNode("td[@class='a6']")?.InnerText),
-                    ProviderName = RemoveExtraCharacter(node.SelectSingleNode("td[@class='a5']")?.InnerText),
+                    Name = name,
+                    //Author = RemoveExtraCharacter(node.SelectSingleNode("td[@class='a6']")?.InnerText),
+                    Author = RemoveExtraCharacter(node.SelectSingleNode(".//p")?.InnerText),
+                    //ProviderName = RemoveExtraCharacter(node.SelectSingleNode("td[@class='a5']")?.InnerText),
+                    ProviderName = RemoveExtraCharacter(node.SelectSingleNode(".//div[@class='vertical-middle']/b/a")?.InnerText),
                     ThreeLetterISOLanguageName = NormalizeLanguage(lang),
                     IsHashMatch = true
                 };
@@ -384,10 +407,7 @@ namespace Emby.Subtitle.Subf2m.Providers
             }
 
             #endregion
-
-            var eTitle = $"S{season.ToString().PadLeft(2, '0')}E{episode.ToString().PadLeft(2, '0')}";
-            res.RemoveAll(s => !s.Name.Contains(eTitle));
-
+            
             return res;
         }
 
@@ -399,6 +419,11 @@ namespace Emby.Subtitle.Subf2m.Providers
         private async Task<string> GetHtml(string domain, string path)
         {
             var html = await Tools.RequestUrl(domain, path, HttpMethod.Get).ConfigureAwait(false);
+
+            var headIndex = html.IndexOf("<head>");
+            var headEnd = html.IndexOf("</head>", headIndex + 1);
+            var endHeadBlock = headEnd - headIndex + 7;
+            html = html.Remove(headIndex, endHeadBlock);
 
             var scIndex = html.IndexOf("<script");
             while (scIndex >= 0)

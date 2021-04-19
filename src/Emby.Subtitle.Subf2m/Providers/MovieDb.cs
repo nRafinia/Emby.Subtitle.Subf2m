@@ -35,7 +35,7 @@ namespace Emby.Subtitle.Subf2m.Providers
             var searchResults = await Tools.RequestUrl<MovieInformation>(opts.Url, "", HttpMethod.Get);
             return searchResults;
 #else
-            using var response = await _httpClient.GetResponse(opts);/*.ConfigureAwait(false)*/)
+            using var response = await _httpClient.GetResponse(opts);/*.ConfigureAwait(false)*/
             
                 if (response.ContentLength < 0)
                     return null;
@@ -53,34 +53,45 @@ namespace Emby.Subtitle.Subf2m.Providers
             var type = id.StartsWith("tt") ? MovieSourceType.imdb_id : MovieSourceType.tvdb_id;
             opts.Url = string.Format(_searchMovie, id, token, type.ToString());
 
+#if DEBUG
+            var searchResults = await Tools.RequestUrl<FindMovie>(opts.Url, "", HttpMethod.Get);
+#else
             using var response = await _httpClient.GetResponse(opts).ConfigureAwait(false);
             if (response.ContentLength < 0)
                 return null;
 
             var searchResults = _jsonSerializer.DeserializeFromStream<FindMovie>(response.Content);
-
+#endif
             return searchResults;
         }
 
         public async Task<TvInformation> GetTvInfo(string id)
         {
             var movie = await SearchMovie(id);
-            
-            if(movie?.tv_episode_results==null || !movie.tv_episode_results.Any())
+
+            if ((movie?.tv_results == null || !movie.tv_results.Any()) &&
+                (movie?.tv_episode_results == null || !movie.tv_episode_results.Any()))
+            {
                 return null;
+            }
 
             var opts = BaseRequestOptions;
-            opts.Url = string.Format(_tvUrl, movie.tv_episode_results.First().show_id, token);
+            opts.Url = string.Format(
+                _tvUrl, 
+                movie.tv_results?.FirstOrDefault()?.id ??
+                movie.tv_episode_results.First().show_id, 
+                token);
 
-            using (var response = await _httpClient.GetResponse(opts).ConfigureAwait(false))
-            {
-                if (response.ContentLength < 0)
-                    return null;
+#if DEBUG
+            var searchResults = await Tools.RequestUrl<TvInformation>(opts.Url, "", HttpMethod.Get);
+#else
+            using var response = await _httpClient.GetResponse(opts).ConfigureAwait(false);
+            if (response.ContentLength < 0)
+                return null;
 
-                var searchResults = _jsonSerializer.DeserializeFromStream<TvInformation>(response.Content);
-
-                return searchResults;
-            }
+            var searchResults = _jsonSerializer.DeserializeFromStream<TvInformation>(response.Content);
+#endif
+            return searchResults;
         }
 
 

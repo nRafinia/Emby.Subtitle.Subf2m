@@ -71,6 +71,7 @@ namespace Emby.Subtitle.Subf2m.Providers
             return retValue;
         }
 
+#if DEBUG
         public static async Task<T> RequestUrl<T>(string baseUrl, string path, HttpMethod method, object postData = null,
             Dictionary<string, string> headers = null, int timeout = 10_000)
         {
@@ -79,6 +80,7 @@ namespace Emby.Subtitle.Subf2m.Providers
                 ? default
                 : JsonConvert.DeserializeObject<T>(r);
         }
+#endif
             
         /// <summary>
         /// Sub string by start index and end index
