@@ -1,4 +1,4 @@
-# Emby.Subtitle.Subscene
+# Emby.Subtitle.Subf2m
 Subf2m subtitle provider for Emby
 
 https://Subf2m.co
