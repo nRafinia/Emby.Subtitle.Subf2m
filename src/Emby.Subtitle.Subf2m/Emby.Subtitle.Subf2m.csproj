@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.1</TargetFramework>
-    <Version>0.0.1</Version>
+    <Version>0.0.3</Version>
     <Authors>nRafinia</Authors>
     <PackageProjectUrl>https://github.com/nRafinia/Emby.Subtitle.Subf2m</PackageProjectUrl>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>

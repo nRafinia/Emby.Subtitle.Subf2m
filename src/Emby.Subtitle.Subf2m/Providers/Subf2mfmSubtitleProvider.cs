@@ -283,16 +283,17 @@ namespace Emby.Subtitle.Subf2m.Providers
 
                 var id = (node.SelectSingleNode(".//a[@class='download icon-download']")?.Attributes["href"].Value + "___" + lang)
                     .Replace("/", "__");
+                var author = RemoveExtraCharacter(node.SelectSingleNode(".//p")?.InnerText);
+                var provider =
+                    RemoveExtraCharacter(node.SelectSingleNode(".//div[@class='vertical-middle']/b/a")?.InnerText);
                 var item = new RemoteSubtitleInfo
                 {
                     Id = id,
-                    Name = name,
-                    //Author = RemoveExtraCharacter(node.SelectSingleNode("td[@class='a6']")?.InnerText),
-                    Author = RemoveExtraCharacter(node.SelectSingleNode(".//p")?.InnerText),
-                    //ProviderName = RemoveExtraCharacter(node.SelectSingleNode("td[@class='a5']")?.InnerText),
-                    ProviderName = RemoveExtraCharacter(node.SelectSingleNode(".//div[@class='vertical-middle']/b/a")?.InnerText),
-                    ThreeLetterISOLanguageName = NormalizeLanguage(lang),
-                    IsHashMatch = true
+                    Name = $"{provider} ({author})",
+                    Author = author,
+                    ProviderName = "Subf2m",
+                    Comment = name,
+                    Format = "srt"
                 };
                 res.Add(item);
             }
@@ -392,16 +393,27 @@ namespace Emby.Subtitle.Subf2m.Providers
 
                 var id = (node.SelectSingleNode(".//a[@class='download icon-download']")?.Attributes["href"].Value + "___" + lang)
                     .Replace("/", "__");
-                var item = new RemoteSubtitleInfo
+                /*var item = new RemoteSubtitleInfo
                 {
                     Id = id,
                     Name = name,
-                    //Author = RemoveExtraCharacter(node.SelectSingleNode("td[@class='a6']")?.InnerText),
                     Author = RemoveExtraCharacter(node.SelectSingleNode(".//p")?.InnerText),
-                    //ProviderName = RemoveExtraCharacter(node.SelectSingleNode("td[@class='a5']")?.InnerText),
                     ProviderName = RemoveExtraCharacter(node.SelectSingleNode(".//div[@class='vertical-middle']/b/a")?.InnerText),
                     ThreeLetterISOLanguageName = NormalizeLanguage(lang),
-                    IsHashMatch = true
+                    IsHashMatch = true,
+                    Format = "srt"
+                };*/
+                var author = RemoveExtraCharacter(node.SelectSingleNode(".//p")?.InnerText);
+                var provider =
+                    RemoveExtraCharacter(node.SelectSingleNode(".//div[@class='vertical-middle']/b/a")?.InnerText);
+                var item = new RemoteSubtitleInfo
+                {
+                    Id = id,
+                    Name = $"{provider} ({author})",
+                    Author = author,
+                    ProviderName = "Subf2m",
+                    Comment = name,
+                    Format = "srt"
                 };
                 res.Add(item);
             }
