@@ -6,8 +6,11 @@ using System.Net.Mime;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+#if DEBUG
+using Newtonsoft.Json;
+#endif
 
-namespace Emby.Subtitle.Subscene.Providers
+namespace Emby.Subtitle.Subf2m.Providers
 {
 
     public static class Tools
@@ -68,16 +71,15 @@ namespace Emby.Subtitle.Subscene.Providers
             return retValue;
         }
 
-        /*public static async Task<T> RequestUrl<T>(string baseUrl, string path, HttpMethod method, object postData = null,
+        public static async Task<T> RequestUrl<T>(string baseUrl, string path, HttpMethod method, object postData = null,
             Dictionary<string, string> headers = null, int timeout = 10_000)
         {
             var r = await RequestUrl(baseUrl, path, method, postData, headers, timeout);
             return string.IsNullOrWhiteSpace(r)
-                ? default(T)
+                ? default
                 : JsonConvert.DeserializeObject<T>(r);
-        }*/
+        }
             
-
         /// <summary>
         /// Sub string by start index and end index
         /// </summary>

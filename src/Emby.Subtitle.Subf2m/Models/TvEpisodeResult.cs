@@ -1,4 +1,4 @@
-﻿namespace Emby.Subtitle.Subscene.Models
+﻿namespace Emby.Subtitle.Subf2m.Models
 {
     public class TvEpisodeResult
     {

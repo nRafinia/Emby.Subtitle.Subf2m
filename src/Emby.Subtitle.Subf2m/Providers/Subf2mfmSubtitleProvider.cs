@@ -18,11 +18,11 @@ using MediaBrowser.Model.Logging;
 using MediaBrowser.Model.Providers;
 using MediaBrowser.Model.Serialization;
 
-namespace Emby.Subtitle.Subscene.Providers
+namespace Emby.Subtitle.Subf2m.Providers
 {
-    public class SubsceneSubtitleProvider : ISubtitleProvider, IHasOrder
+    public class Subf2mSubtitleProvider : ISubtitleProvider, IHasOrder
     {
-        private const string Domain = "https://subscene.com";
+        private const string Domain = "https://Subf2m.co";
         private const string SubtitleUrl = "/subtitles/{0}/{1}";
         private const string SearchUrl = "/subtitles/searchbytitle?query={0}&l=";
         private const string XmlTag = "<?xml version=\"1.0\" ?>";
@@ -45,7 +45,7 @@ namespace Emby.Subtitle.Subscene.Providers
         private readonly ILocalizationManager _localizationManager;
         private readonly IJsonSerializer _jsonSerializer;
 
-        public SubsceneSubtitleProvider(IHttpClient httpClient, ILogger logger, IApplicationHost appHost
+        public Subf2mSubtitleProvider(IHttpClient httpClient, ILogger logger, IApplicationHost appHost
             , ILocalizationManager localizationManager, IJsonSerializer jsonSerializer)
         {
             _httpClient = httpClient;
@@ -66,7 +66,7 @@ namespace Emby.Subtitle.Subscene.Providers
             var url = ids[0].Replace("__", "/");
             var lang = ids[1];
 
-            _logger?.Info($"Subscene= Request for subtitle= {url}");
+            _logger?.Info($"Subf2m= Request for subtitle= {url}");
 
             var html = await GetHtml(Domain, url);
             if (string.IsNullOrWhiteSpace(html))
@@ -81,7 +81,7 @@ namespace Emby.Subtitle.Subscene.Providers
 
             var downloadLink = downText.SubStr(startIndex + 10, endIndex - 1);
 
-            _logger?.Debug($"Subscene= Downloading subtitle= {downloadLink}");
+            _logger?.Debug($"Subf2m= Downloading subtitle= {downloadLink}");
 
             var opts = BaseRequestOptions;
             opts.Url = $"{Domain}/{downloadLink}";
@@ -92,7 +92,7 @@ namespace Emby.Subtitle.Subscene.Providers
             {
                 using (var response = await _httpClient.GetResponse(opts).ConfigureAwait(false))
                 {
-                    _logger?.Info("Subscene=" + response.ContentType);
+                    _logger?.Info("Subf2m=" + response.ContentType);
                     var contentType = response.ContentType.ToLower();
                     if (!contentType.Contains("zip"))
                     {
@@ -152,7 +152,7 @@ namespace Emby.Subtitle.Subscene.Providers
             var res= await Search(title, request.ProductionYear, request.Language, request.ContentType, prov.Value.Value,
                 request.ParentIndexNumber ?? 0, request.IndexNumber ?? 0);
 
-            _logger?.Debug($"Subscene= result found={res?.Count()}");
+            _logger?.Debug($"Subf2m= result found={res?.Count()}");
             return res;
         }
 
@@ -160,7 +160,7 @@ namespace Emby.Subtitle.Subscene.Providers
             VideoContentType contentType, string movieId, int season, int episode)
         {
             _logger?.Info(
-                $"Subscene= Request subtitle for '{title}', language={lang}, year={year}, movie Id={movieId}, Season={season}, Episode={episode}");
+                $"Subf2m= Request subtitle for '{title}', language={lang}, year={year}, movie Id={movieId}, Season={season}, Episode={episode}");
 
             var res = new List<RemoteSubtitleInfo>();
             try
@@ -185,7 +185,7 @@ namespace Emby.Subtitle.Subscene.Providers
                     Id = s.First().Id,
                     Name = $"{s.First().ProviderName} ({s.First().Author})",
                     Author = s.First().Author,
-                    ProviderName = "Subscene",
+                    ProviderName = "Subf2m",
                     Comment = string.Join("<br/>", s.Select(n => n.Name)),
                     Format = "srt"
                 }).ToList();
@@ -205,13 +205,13 @@ namespace Emby.Subtitle.Subscene.Providers
                 {
                     year = info.release_date.Year;
                     title = info.Title;
-                    _logger?.Info($"Subscene= Original movie title=\"{info.Title}\", year={info.release_date.Year}");
+                    _logger?.Info($"Subf2m= Original movie title=\"{info.Title}\", year={info.release_date.Year}");
                 }
             }
 
-            #region Search subscene
+            #region Search Subf2m
 
-            _logger?.Debug($"Subscene= Searching for site search \"{title}\"");
+            _logger?.Debug($"Subf2m= Searching for site search \"{title}\"");
             var url = string.Format(SearchUrl, HttpUtility.UrlEncode(title));
             var html = await GetHtml(Domain, url);
 
@@ -311,7 +311,7 @@ namespace Emby.Subtitle.Subscene.Providers
 
             title = info.Name;
 
-            _logger?.Debug($"Subscene= Searching for site search \"{title}\"");
+            _logger?.Debug($"Subf2m= Searching for site search \"{title}\"");
             var url = string.Format(SearchUrl, HttpUtility.UrlEncode($"{title} - {_seasonNumbers[season]} Season"));
             var html = await GetHtml(Domain, url);
 

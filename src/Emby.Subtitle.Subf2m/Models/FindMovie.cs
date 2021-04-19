@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace Emby.Subtitle.Subscene.Models
+namespace Emby.Subtitle.Subf2m.Models
 {
     public class FindMovie
     {

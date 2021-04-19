@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
@@ -6,7 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Emby.Subtitle.Subscene\Emby.Subtitle.Subscene.csproj" />
+    <ProjectReference Include="..\Emby.Subtitle.Subf2m\Emby.Subtitle.Subf2m.csproj" />
   </ItemGroup>
 
 </Project>
