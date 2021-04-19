@@ -1,5 +1,7 @@
 # Emby.Subtitle.Subscene
-Subscene subtitle provider for Emby
+Subf2m subtitle provider for Emby
+
+https://Subf2m.co
 
 Currently support languages:
 
