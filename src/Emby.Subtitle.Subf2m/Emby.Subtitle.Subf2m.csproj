@@ -4,10 +4,10 @@
     <TargetFramework>netstandard2.1</TargetFramework>
     <Version>0.4.1</Version>
     <Authors>nRafinia</Authors>
-    <PackageProjectUrl>https://github.com/nRafinia/Emby.Subtitle.Subf2m</PackageProjectUrl>
+    <PackageProjectUrl>https://github.com/nRafinia/Emby.Subtitle.SubF2M</PackageProjectUrl>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <AssemblyName>Emby.Subtitle.Subf2m</AssemblyName>
-    <RootNamespace>Emby.Subtitle.Subf2m</RootNamespace>
+    <AssemblyName>Emby.Subtitle.SubF2M</AssemblyName>
+    <RootNamespace>Emby.Subtitle.SubF2M</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>

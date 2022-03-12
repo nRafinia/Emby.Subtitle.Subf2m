@@ -1,16 +1,13 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Net.Http;
-using System.Net.Mime;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 #if DEBUG
-using Newtonsoft.Json;
 #endif
 
-namespace Emby.Subtitle.Subf2m.Providers
+namespace Emby.Subtitle.SubF2M.Share
 {
 
     public static class Tools
@@ -81,15 +78,7 @@ namespace Emby.Subtitle.Subf2m.Providers
                 : JsonConvert.DeserializeObject<T>(r);
         }
 #endif
-            
-        /// <summary>
-        /// Sub string by start index and end index
-        /// </summary>
-        /// <param name="value">Original string</param>
-        /// <param name="startIndex">Start index</param>
-        /// <param name="endIndex">End index</param>
-        /// <returns>Sub stringed text</returns>
-        public static string SubStr(this string value, int startIndex, int endIndex) =>
-            value.Substring(startIndex, (endIndex - startIndex + 1));
+
+
     }
 }

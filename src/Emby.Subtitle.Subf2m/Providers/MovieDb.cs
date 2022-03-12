@@ -1,16 +1,17 @@
-﻿using System.Linq;
-using System.Net.Http;
-using System.Threading.Tasks;
-using Emby.Subtitle.Subf2m.Models;
+﻿using Emby.Subtitle.SubF2M.Models;
+using Emby.Subtitle.SubF2M.Share;
 using MediaBrowser.Common;
 using MediaBrowser.Common.Net;
 using MediaBrowser.Model.Serialization;
+using System.Linq;
+using System.Net.Http;
+using System.Threading.Tasks;
 
-namespace Emby.Subtitle.Subf2m.Providers
+namespace Emby.Subtitle.SubF2M.Providers
 {
     public class MovieDb
     {
-        private const string token = "{TOKEN}";// Get https://www.themoviedb.org/ API token
+        private const string token = "d9d7bb04fb2c52c2b594c5e30065c23c";// Get https://www.themoviedb.org/ API token
         private readonly string _movieUrl = "https://api.themoviedb.org/3/movie/{0}?api_key={1}";
         private readonly string _tvUrl = "https://api.themoviedb.org/3/tv/{0}?api_key={1}";
         private readonly string _searchMovie = "https://api.themoviedb.org/3/find/{0}?api_key={1}&external_source={2}";
@@ -35,14 +36,14 @@ namespace Emby.Subtitle.Subf2m.Providers
             return searchResults;
 #else
             using var response = await _httpClient.GetResponse(opts);/*.ConfigureAwait(false)*/
-            
-                if (response.ContentLength < 0)
-                    return null;
 
-                var searchResults = _jsonSerializer.DeserializeFromStream<MovieInformation>(response.Content);
+            if (response.ContentLength < 0)
+                return null;
 
-                return searchResults;
-            
+            var searchResults = _jsonSerializer.DeserializeFromStream<MovieInformation>(response.Content);
+
+            return searchResults;
+
 #endif
         }
 
@@ -76,9 +77,9 @@ namespace Emby.Subtitle.Subf2m.Providers
 
             var opts = BaseRequestOptions;
             opts.Url = string.Format(
-                _tvUrl, 
+                _tvUrl,
                 movie.tv_results?.FirstOrDefault()?.id ??
-                movie.tv_episode_results.First().show_id, 
+                movie.tv_episode_results.First().show_id,
                 token);
 
 #if DEBUG

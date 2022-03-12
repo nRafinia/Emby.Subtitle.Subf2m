@@ -1,7 +1,7 @@
 ﻿using System;
 using MediaBrowser.Common.Net;
 
-namespace Emby.Subtitle.Subf2m.Models
+namespace Emby.Subtitle.SubF2M.Models
 {
     public class MovieInformation
     {

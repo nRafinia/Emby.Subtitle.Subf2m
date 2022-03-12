@@ -1,8 +1,7 @@
-﻿using System;
+﻿using Emby.Subtitle.SubF2M;
+using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Emby.Subtitle.Subf2m.Providers;
-using MediaBrowser.Controller.Providers;
 
 namespace Test
 {
@@ -26,7 +25,7 @@ namespace Test
             }*/
 
             //__subtitles__wandavision__farsi_persian__2373648___per
-            await new Subf2mSubtitleProvider(null, null, null, null, null)
+            await new SubF2MSubtitleProvider(null, null, null, null, null)
                 .GetSubtitles("__subtitles__wandavision__farsi_persian__2373648___per", CancellationToken.None);
 
 

@@ -6,7 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Emby.Subtitle.Subf2m\Emby.Subtitle.Subf2m.csproj" />
+    <ProjectReference Include="..\Emby.Subtitle.Subf2m\Emby.Subtitle.SubF2M.csproj" />
   </ItemGroup>
 
 </Project>
