@@ -5,7 +5,6 @@ using Emby.Subtitle.Subf2m.Models;
 using MediaBrowser.Common;
 using MediaBrowser.Common.Net;
 using MediaBrowser.Model.Serialization;
-using MovieFinder.Models;
 
 namespace Emby.Subtitle.Subf2m.Providers
 {

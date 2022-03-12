@@ -1,4 +1,4 @@
-﻿namespace MovieFinder.Models
+﻿namespace Emby.Subtitle.Subf2m.Models
 {
     public enum MovieSourceType
     {

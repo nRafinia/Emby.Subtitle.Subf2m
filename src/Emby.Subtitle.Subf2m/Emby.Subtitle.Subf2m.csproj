@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.1</TargetFramework>
-    <Version>0.0.4.0</Version>
+    <Version>0.4.1</Version>
     <Authors>nRafinia</Authors>
     <PackageProjectUrl>https://github.com/nRafinia/Emby.Subtitle.Subf2m</PackageProjectUrl>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
@@ -19,7 +19,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="MediaBrowser.Server.Core" Version="4.6.0.35-beta" />
+    <PackageReference Include="MediaBrowser.Server.Core" Version="4.7.0.30" />
     <PackageReference Include="newtonsoft.json" Version="13.0.1" Condition="$(Configuration) == 'Debug'" />
     <PackageReference Include="System.Memory" Version="4.5.4" />
   </ItemGroup>
