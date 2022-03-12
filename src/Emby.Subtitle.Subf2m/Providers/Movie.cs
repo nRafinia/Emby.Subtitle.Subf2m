@@ -8,6 +8,8 @@ using MediaBrowser.Model.Providers;
 using MediaBrowser.Model.Serialization;
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
 using System.Xml;
@@ -31,17 +33,16 @@ namespace Emby.Subtitle.SubF2M.Providers
             _appHost = appHost;
             _jsonSerializer = jsonSerializer;
             _language = new Language(localizationManager);
-            _html = new Html();
+            _html = new Html(httpClient, appHost);
         }
 
-        public async Task<List<RemoteSubtitleInfo>> Search(string title, int? year, string lang, string movieId)
+        public async Task<List<RemoteSubtitleInfo>> Search(string title, int? year, string lang, string movieId,
+            CancellationToken cancellationToken)
         {
-            var res = new List<RemoteSubtitleInfo>();
-
             if (!string.IsNullOrWhiteSpace(movieId))
             {
                 var mDb = new MovieDb(_jsonSerializer, _httpClient, _appHost);
-                var info = await mDb.GetMovieInfo(movieId);
+                var info = await mDb.GetMovieInfo(movieId, cancellationToken);
 
                 if (info != null)
                 {
@@ -54,12 +55,34 @@ namespace Emby.Subtitle.SubF2M.Providers
             #region Search Subf2m
 
             _logger?.Debug($"Subf2m= Searching for site search \"{title}\"");
-            var url = string.Format(Const.SearchUrl, HttpUtility.UrlEncode(title));
-            var html = await _html.Get(Const.Domain, url);
+            var html = await SearchSubF2M(title, year, lang, cancellationToken);
 
             if (string.IsNullOrWhiteSpace(html))
             {
-                return res;
+                return new List<RemoteSubtitleInfo>();
+            }
+
+            #endregion
+
+            #region Extract subtitle links
+
+            var subtitles = ExtractSubtitles(html, lang);
+
+            #endregion
+
+            return subtitles;
+        }
+
+        #region Priva Methods
+
+        private async Task<string> SearchSubF2M(string title, int? year, string lang, CancellationToken cancellationToken)
+        {
+            var url = string.Format(Const.SearchUrl, HttpUtility.UrlEncode(title));
+            var html = await _html.Get(Const.Domain + url, cancellationToken);
+
+            if (string.IsNullOrWhiteSpace(html))
+            {
+                return string.Empty;
             }
 
             html = html.Replace("</div></div></body>", "</div></body>");
@@ -69,39 +92,55 @@ namespace Emby.Subtitle.SubF2M.Providers
 
             var xNode = xml.SelectSingleNode("//div[@class='search-result']");
             if (xNode == null)
-                return res;
+            {
+                return string.Empty;
+            }
 
-            var ex = xNode?.SelectSingleNode("h2[@class='exact']")
-                     ?? xNode?.SelectSingleNode("h2[@class='close']")
-                     ?? xNode?.SelectSingleNode("h2[@class='popular']");
+            var ex = xNode.SelectSingleNode("h2[@class='exact']")
+                     ?? xNode.SelectSingleNode("h2[@class='close']")
+                     ?? xNode.SelectSingleNode("h2[@class='popular']");
 
             if (ex == null)
-                return res;
+            {
+                return string.Empty;
+            }
 
             xNode = xNode.SelectSingleNode("ul");
-            if (xNode == null)
-                return res;
-            var sItems = xNode.SelectNodes(".//a");
+            var sItems = xNode?.SelectNodes(".//a");
+
+            if (sItems == null)
+            {
+                return string.Empty;
+            }
 
             foreach (XmlNode item in sItems)
             {
-                var sYear = item.InnerText.Split('(', ')')[1];
-                if (year.Value != Convert.ToInt16(sYear))
+                if (item == null)
+                {
                     continue;
+                }
 
-                var link = item.Attributes["href"].Value;
-                link += $"/{_language.Map(lang)}";
-                html = await _html.Get(Const.Domain, link);
+                var sYear = item.InnerText.Split('(', ')')[1];
+                if ((year ?? 0) != Convert.ToInt16(sYear))
+                {
+                    continue;
+                }
+
+                var link = $"{item.Attributes?["href"].Value}/{_language.Map(lang)}";
+                html = await _html.Get(Const.Domain + link, cancellationToken);
                 break;
             }
 
-            #endregion
+            return html;
+        }
 
-            #region Extract subtitle links
-
+        private static List<RemoteSubtitleInfo> ExtractSubtitles(string html, string lang)
+        {
             html = html.Replace("</div></div></body>", "</div></body>");
 
-            xml = new XmlDocument();
+            var res = new List<RemoteSubtitleInfo>();
+
+            var xml = new XmlDocument();
             xml.LoadXml(Const.XmlTag + html);
 
             var repeater = xml.SelectNodes("//li[@class='item']");
@@ -114,36 +153,43 @@ namespace Emby.Subtitle.SubF2M.Providers
             foreach (XmlElement node in repeater)
             {
                 var nameList = node.SelectNodes(".//li");
-                var name = string.Empty;
-                foreach (XmlElement nItem in nameList)
+
+                if (nameList == null)
                 {
-                    name += nItem.InnerText + "<br/>";
+                    continue;
                 }
 
-                if (string.IsNullOrWhiteSpace(name))
-                    continue;
+                var name = nameList.Cast<XmlElement>()
+                    .Aggregate(string.Empty, (current, nItem) => current + (nItem.InnerText + "<br/>"));
 
-                var id = (node.SelectSingleNode(".//a[@class='download icon-download']")?.Attributes["href"].Value +
-                          "___" + lang)
-                    .Replace("/", "__");
+                if (string.IsNullOrWhiteSpace(name))
+                {
+                    continue;
+                }
+
+                var id = Subtitle.CreateSubtitleId(
+                    node.SelectSingleNode(".//a[@class='download icon-download']")?.Attributes?["href"].Value,
+                    lang);
+
                 var author = node.SelectSingleNode(".//p")?.InnerText.RemoveExtraCharacter();
                 var provider =
                     node.SelectSingleNode(".//div[@class='vertical-middle']/b/a")?.InnerText.RemoveExtraCharacter();
+
                 var item = new RemoteSubtitleInfo
                 {
                     Id = id,
                     Name = $"{provider} ({author})",
                     Author = author,
-                    ProviderName = "Subf2m",
+                    ProviderName = Const.PluginName,
                     Comment = name,
                     Format = "srt"
                 };
                 res.Add(item);
             }
 
-            #endregion
-
             return res;
         }
+
+        #endregion
     }
 }

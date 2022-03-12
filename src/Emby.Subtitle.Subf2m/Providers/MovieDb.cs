@@ -1,73 +1,45 @@
-﻿using Emby.Subtitle.SubF2M.Models;
+﻿using Emby.Subtitle.SubF2M.Extensions;
+using Emby.Subtitle.SubF2M.Models;
 using Emby.Subtitle.SubF2M.Share;
 using MediaBrowser.Common;
 using MediaBrowser.Common.Net;
 using MediaBrowser.Model.Serialization;
 using System.Linq;
-using System.Net.Http;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Emby.Subtitle.SubF2M.Providers
 {
     public class MovieDb
     {
-        private const string token = "d9d7bb04fb2c52c2b594c5e30065c23c";// Get https://www.themoviedb.org/ API token
-        private readonly string _movieUrl = "https://api.themoviedb.org/3/movie/{0}?api_key={1}";
-        private readonly string _tvUrl = "https://api.themoviedb.org/3/tv/{0}?api_key={1}";
-        private readonly string _searchMovie = "https://api.themoviedb.org/3/find/{0}?api_key={1}&external_source={2}";
+        private const string Token = "{token}"; // Get https://www.themoviedb.org/ API token
+        private const string MovieUrl = "https://api.themoviedb.org/3/movie/{0}?api_key={1}";
+        private const string TvUrl = "https://api.themoviedb.org/3/tv/{0}?api_key={1}";
+        private const string SearchMovieUrl = "https://api.themoviedb.org/3/find/{0}?api_key={1}&external_source={2}";
 
         private readonly IJsonSerializer _jsonSerializer;
         private readonly IHttpClient _httpClient;
-        private readonly IApplicationHost _appHost;
+        private readonly Html _html;
+
         public MovieDb(IJsonSerializer jsonSerializer, IHttpClient httpClient, IApplicationHost appHost)
         {
             _jsonSerializer = jsonSerializer;
             _httpClient = httpClient;
-            _appHost = appHost;
+            _html = new Html(httpClient, appHost);
         }
 
-        public async Task<MovieInformation> GetMovieInfo(string id)
+        public Task<MovieInformation> GetMovieInfo(string id, CancellationToken cancellationToken)
         {
-            var opts = BaseRequestOptions;
-            opts.Url = string.Format(_movieUrl, id, token);
+            var opts = _html.BaseRequestOptions(
+                string.Format(MovieUrl, id, Token),
+                cancellationToken);
 
-#if DEBUG
-            var searchResults = await Tools.RequestUrl<MovieInformation>(opts.Url, "", HttpMethod.Get);
-            return searchResults;
-#else
-            using var response = await _httpClient.GetResponse(opts);/*.ConfigureAwait(false)*/
-
-            if (response.ContentLength < 0)
-                return null;
-
-            var searchResults = _jsonSerializer.DeserializeFromStream<MovieInformation>(response.Content);
-
-            return searchResults;
-
-#endif
+            return _httpClient.GetResponse<MovieInformation>(opts, _jsonSerializer);
         }
 
-        public async Task<FindMovie> SearchMovie(string id)
+        public async Task<TvInformation> GetTvInfo(string id, CancellationToken cancellationToken)
         {
-            var opts = BaseRequestOptions;
-            var type = id.StartsWith("tt") ? MovieSourceType.imdb_id : MovieSourceType.tvdb_id;
-            opts.Url = string.Format(_searchMovie, id, token, type.ToString());
-
-#if DEBUG
-            var searchResults = await Tools.RequestUrl<FindMovie>(opts.Url, "", HttpMethod.Get);
-#else
-            using var response = await _httpClient.GetResponse(opts).ConfigureAwait(false);
-            if (response.ContentLength < 0)
-                return null;
-
-            var searchResults = _jsonSerializer.DeserializeFromStream<FindMovie>(response.Content);
-#endif
-            return searchResults;
-        }
-
-        public async Task<TvInformation> GetTvInfo(string id)
-        {
-            var movie = await SearchMovie(id);
+            var movie = await SearchMovie(id, cancellationToken);
 
             if ((movie?.tv_results == null || !movie.tv_results.Any()) &&
                 (movie?.tv_episode_results == null || !movie.tv_episode_results.Any()))
@@ -75,30 +47,26 @@ namespace Emby.Subtitle.SubF2M.Providers
                 return null;
             }
 
-            var opts = BaseRequestOptions;
-            opts.Url = string.Format(
-                _tvUrl,
+            var url = string.Format(
+                TvUrl,
                 movie.tv_results?.FirstOrDefault()?.id ??
                 movie.tv_episode_results.First().show_id,
-                token);
+                Token);
 
-#if DEBUG
-            var searchResults = await Tools.RequestUrl<TvInformation>(opts.Url, "", HttpMethod.Get);
-#else
-            using var response = await _httpClient.GetResponse(opts).ConfigureAwait(false);
-            if (response.ContentLength < 0)
-                return null;
+            var opts = _html.BaseRequestOptions(url, cancellationToken);
 
-            var searchResults = _jsonSerializer.DeserializeFromStream<TvInformation>(response.Content);
-#endif
+            var searchResults = await _httpClient.GetResponse<TvInformation>(opts, _jsonSerializer);
             return searchResults;
         }
 
-
-        private HttpRequestOptions BaseRequestOptions => new HttpRequestOptions
+        private Task<FindMovie> SearchMovie(string id, CancellationToken cancellationToken)
         {
-            UserAgent = $"Emby/{_appHost?.ApplicationVersion}"
-        };
+            var type = id.StartsWith("tt") ? MovieSourceType.imdb_id : MovieSourceType.tvdb_id;
+            var opts = _html.BaseRequestOptions(
+                string.Format(SearchMovieUrl, id, Token, type.ToString()),
+                cancellationToken);
 
+            return _httpClient.GetResponse<FindMovie>(opts, _jsonSerializer);
+        }
     }
 }

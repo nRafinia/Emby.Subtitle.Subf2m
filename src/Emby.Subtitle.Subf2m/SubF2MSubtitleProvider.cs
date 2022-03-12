@@ -43,13 +43,6 @@ namespace Emby.Subtitle.SubF2M
             _jsonSerializer = jsonSerializer;
         }
 
-        public async Task<SubtitleResponse> GetSubtitles(string id, CancellationToken cancellationToken)
-        {
-
-            var subtitle = new Providers.Subtitle(_httpClient, _logger, _appHost, _localizationManager, _jsonSerializer);
-            return await subtitle.Download(id, cancellationToken);
-        }
-
         public async Task<IEnumerable<RemoteSubtitleInfo>> Search(SubtitleSearchRequest request,
             CancellationToken cancellationToken)
         {
@@ -72,13 +65,26 @@ namespace Emby.Subtitle.SubF2M
                 : request.SeriesName;
 
             var subtitle = new Providers.Subtitle(_httpClient, _logger, _appHost, _localizationManager, _jsonSerializer);
-            var subtitleResult = await subtitle.Search(title, request.ProductionYear, request.Language, request.ContentType,
-                prov.Value.Value, request.ParentIndexNumber ?? 0, request.IndexNumber ?? 0);
+            var subtitleResult = await subtitle.Search(
+                title,
+                request.ProductionYear,
+                request.Language,
+                request.ContentType,
+                prov.Value.Value,
+                request.ParentIndexNumber ?? 0,
+                request.IndexNumber ?? 0,
+                cancellationToken);
 
             var subtitles = subtitleResult as RemoteSubtitleInfo[] ?? subtitleResult.ToArray();
 
             _logger?.Debug($"Subf2m= result found={subtitles?.Count()}");
             return subtitles;
+        }
+
+        public Task<SubtitleResponse> GetSubtitles(string id, CancellationToken cancellationToken)
+        {
+            var subtitle = new Providers.Subtitle(_httpClient, _logger, _appHost, _localizationManager, _jsonSerializer);
+            return subtitle.Download(id, cancellationToken);
         }
 
     }
