@@ -137,7 +137,7 @@ namespace Emby.Subtitle.SubF2M.Providers
 
         private async Task<(string Extension, string Language, Stream content)> DownloadSubtitle(string url, string lang, CancellationToken cancellationToken)
         {
-            var opts = _html.BaseRequestOptions($"{Const.Domain}/{url}", cancellationToken);
+            var opts = _html.BaseRequestOptions(url, cancellationToken);
 
             try
             {

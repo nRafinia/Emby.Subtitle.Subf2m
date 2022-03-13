@@ -73,7 +73,7 @@ namespace Emby.Subtitle.SubF2M.Providers
             return subtitles;
         }
 
-        #region Priva Methods
+        #region Private Methods
 
         private async Task<string> SearchSubF2M(string title, int? year, string lang, CancellationToken cancellationToken)
         {
