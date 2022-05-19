@@ -77,7 +77,7 @@ namespace Emby.Subtitle.SubF2M
 
             var subtitles = subtitleResult as RemoteSubtitleInfo[] ?? subtitleResult.ToArray();
 
-            _logger?.Debug($"Subf2m= result found={subtitles?.Count()}");
+            _logger?.Debug($"Subf2m= result found={subtitles.Count()}");
             return subtitles;
         }
 

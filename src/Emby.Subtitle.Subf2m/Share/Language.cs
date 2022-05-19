@@ -16,6 +16,7 @@ namespace Emby.Subtitle.SubF2M.Share
         {
             switch (lang.ToLower())
             {
+                case "fa":
                 case "per":
                     lang = "farsi_persian";
                     break;
