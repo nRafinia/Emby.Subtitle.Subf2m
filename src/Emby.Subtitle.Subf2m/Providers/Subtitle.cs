@@ -176,7 +176,7 @@ namespace Emby.Subtitle.SubF2M.Providers
                 ? archive.Entries.FirstOrDefault(a => a.FullName.ToLower().Contains("utf"))
                 : archive.Entries.First()) ?? archive.Entries.First();
 
-            await using var ms = new MemoryStream();
+            var ms = new MemoryStream();
             await item.Open().CopyToAsync(ms, cancellationToken);
             ms.Position = 0;
 
