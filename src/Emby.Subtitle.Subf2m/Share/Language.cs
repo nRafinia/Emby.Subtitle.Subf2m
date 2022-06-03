@@ -93,11 +93,7 @@ namespace Emby.Subtitle.SubF2M.Share
                     lang = "malayalam";
                     break;
                 case "nno":
-                    lang = "norwegian";
-                    break;
                 case "nob":
-                    lang = "norwegian";
-                    break;
                 case "nor":
                     lang = "norwegian";
                     break;
@@ -135,7 +131,7 @@ namespace Emby.Subtitle.SubF2M.Share
 
         public string Normalize(string language)
         {
-            if (!string.IsNullOrWhiteSpace(language))
+            if (string.IsNullOrWhiteSpace(language))
             {
                 return language;
             }
