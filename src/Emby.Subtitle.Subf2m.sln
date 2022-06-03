@@ -5,6 +5,8 @@ VisualStudioVersion = 17.1.32228.430
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Emby.Subtitle.SubF2M", "Emby.Subtitle.Subf2m\Emby.Subtitle.SubF2M.csproj", "{61F72410-661A-4B77-8BD9-9FB1D29CC07B}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Emby.Subtitle.SubF2M_Test", "Emby.Subtitle.SubF2M_Test\Emby.Subtitle.SubF2M_Test.csproj", "{41F87FE7-A14B-47C6-87CD-A303B2775A2C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +17,10 @@ Global
 		{61F72410-661A-4B77-8BD9-9FB1D29CC07B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{61F72410-661A-4B77-8BD9-9FB1D29CC07B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{61F72410-661A-4B77-8BD9-9FB1D29CC07B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{41F87FE7-A14B-47C6-87CD-A303B2775A2C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{41F87FE7-A14B-47C6-87CD-A303B2775A2C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{41F87FE7-A14B-47C6-87CD-A303B2775A2C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{41F87FE7-A14B-47C6-87CD-A303B2775A2C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

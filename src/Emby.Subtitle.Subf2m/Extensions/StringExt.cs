@@ -18,14 +18,13 @@
                 .Trim();
 
         public static string FixHtml(this string text) =>
-            text?.Replace("&nbsp;", "")
+            text?.Replace("&nbsp;", " ")
                 .Replace("&amp;", "Xamp;")
                 .Replace("&", "&amp;")
                 .Replace("Xamp;", "&amp;")
                 .Replace("--->", "---")
                 .Replace("<---", "---")
                 .Replace("<--", "--")
-                .Replace("Xamp;", "&amp;")
                 .Replace("<!DOCTYPE html>", "");
     }
 }
