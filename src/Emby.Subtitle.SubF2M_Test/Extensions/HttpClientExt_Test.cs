@@ -24,7 +24,7 @@ public class HttpClientExt_Test
             Id = 1,
             Name = "Test"
         };
-        var responseStream = GenerateStreamFromString(JsonSerializer.Serialize(responseModel));
+        var responseStream = Utility.GenerateStreamFromString(JsonSerializer.Serialize(responseModel));
 
         httpClient
             .Setup(_ => _.GetResponse(It.IsAny<HttpRequestOptions>()))
@@ -68,21 +68,11 @@ public class HttpClientExt_Test
         
         //assert
         result.Should().BeNull();
-    }    
-    
-    private static Stream GenerateStreamFromString(string s)
-    {
-        var stream = new MemoryStream();
-        var writer = new StreamWriter(stream);
-        writer.Write(s);
-        writer.Flush();
-        stream.Position = 0;
-        return stream;
     }
-    
+
     public class TestResult
     {
-        public string Name { get; set; }
+        public string? Name { get; set; }
         public int Id { get; set; }
     }
 }
