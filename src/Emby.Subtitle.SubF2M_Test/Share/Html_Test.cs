@@ -1,9 +1,7 @@
 ﻿using System;
-using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Emby.Subtitle.SubF2M.Share;
-using Emby.Subtitle.SubF2M_Test.Extensions;
 using FluentAssertions;
 using MediaBrowser.Common;
 using MediaBrowser.Common.Net;
