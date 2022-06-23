@@ -182,7 +182,7 @@ namespace Emby.Subtitle.SubF2M.Providers
                     Author = author,
                     ProviderName = Const.PluginName,
                     Comment = name,
-                    //Format = "srt"
+                    Format = "srt"
                 };
                 res.Add(item);
             }
