@@ -155,10 +155,10 @@ namespace Emby.Subtitle.SubF2M.Providers
                 var fileExt = Path.GetExtension(fileName);
                 if (string.IsNullOrWhiteSpace(fileExt))
                 {
-                    fileExt = "srt";
+                    fileExt = ".srt";
                 }
 
-                return (fileExt, _language.Normalize(lang), stream);
+                return (fileExt[1..], _language.Normalize(lang), stream);
             }
             catch (Exception e)
             {
