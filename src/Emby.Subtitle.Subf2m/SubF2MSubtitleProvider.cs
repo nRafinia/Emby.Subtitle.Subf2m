@@ -47,6 +47,7 @@ namespace Emby.Subtitle.SubF2M
             CancellationToken cancellationToken)
         {
             var prov = request.ProviderIds?.FirstOrDefault(p =>
+                p.Key.ToLower() == "imdb") ?? request.ProviderIds?.FirstOrDefault(p =>
                 p.Key.ToLower() == "imdb" || p.Key.ToLower() == "tmdb" || p.Key.ToLower() == "tvdb");
 
             if (prov == null)
